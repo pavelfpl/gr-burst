@@ -11,23 +11,28 @@ x_n = eqInput(1:length(d_n));
 x_n = x_n(:);
 
 % generate the input correlation matrix
-X = fft(x_n,2^nextpow2(2*size(x_n,1)-1));
+X = fft(x_n, 2^nextpow2(2*size(x_n,1)-1));
 X_magSq = abs(X).^2;
-rxx_ifft = ifft(X_magSq);
+
+rxx_ifft = ifft(X_magSq);% rxx_ifft
 m = length(x_n);
 rxx = rxx_ifft./m; % Biased autocorrelation estimate
+
 % creates: http://en.wikipedia.org/wiki/Autocorrelation_matrix
-toeplitzMatCol = rxx(1:m);
-toeplitzMatRow = conj(rxx(1:m));
+toeplitzMatCol = rxx(1:m); 
+toeplitzMatRow = conj(rxx(1:m)); 
 R = toeplitz(toeplitzMatCol,toeplitzMatRow);
 
 % make the P vector
 xc = xcorr(d_n, x_n);
+
 P_row = xc(1:m);
 P = P_row(:);
 
 % solve the optimal weights problem
 w = R\P;
+
+% w
 
 if(debugFilename~=0)
     fname = '/tmp/ml_dofFFTOutput.txt';

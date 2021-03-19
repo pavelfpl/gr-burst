@@ -33,7 +33,7 @@ dlmwrite(fname, prepareCmplxVecForWrite(burst1), 'delimiter', '\n');
 
 debugFilename = 1;
 
-[pll_v1_out, pll_v2_out, pll_v3_out, preCrossCorr] = ...
+[pll_v1_out, pll_v2_out, pll_v3_out, pll_v4_out, preCrossCorr] = ...
         qpskSyncBurst(burst1, Fs, .002, debugFilename);
 
 % fprintf('done\n');
@@ -58,3 +58,10 @@ subplot(2,2,4)
 scatter(real(pll_v3_out),imag(pll_v3_out))
 grid on
 title('Constellation w/ v3 PLL')
+
+subplot(2,2,5)
+scatter(real(pll_v4_out),imag(pll_v4_out))
+grid on
+title('Constellation w/ v4 (second order) PLL')
+
+

@@ -1,4 +1,4 @@
-function [ phRecoveredSyms, phRecoveredSyms_v2, phRecoveredSyms_v3, preCrossCorr ] = ...
+function [ phRecoveredSyms, phRecoveredSyms_v2, phRecoveredSyms_v3,phRecoveredSyms_v4,  preCrossCorr ] = ...
     qpskSyncBurst( x, Fs, alpha, debugFilename )
 
 phRecoveredSyms_v2 = [];
@@ -17,13 +17,14 @@ if(preambleIdxStart<1)
     preCrossCorr = [];
     return
 end
+
 eqIn = eqBurst(preambleIdxStart:end);
 eqIn_div2 = eqIn(1:2:end);
 [wOpt]= weiner_filter_equalize( eqIn_div2, debugFilename );
 wOpt = wOpt./max(abs(wOpt));
 wOpt = wOpt.';      % row vectors are nice
 
-%whFilt_unscaled = filter(wOpt,1,eqIn_div2);
+% whFilt_unscaled = filter(wOpt,1,eqIn_div2);
 % whFilt_unscaled = conv(eqIn_div2, wOpt);
 % fft based convolution
 fftSize = length(eqIn_div2)+length(wOpt)-1;
@@ -36,6 +37,7 @@ whFilt = whFilt_unscaled./whFilt_mean;
 phRecoveredSyms = qpskFirstOrderPLL(whFilt, alpha);
 phRecoveredSyms_v2 = qpskFirstOrderPLL_v2(whFilt, alpha);
 phRecoveredSyms_v3 = qpskFirstOrderPLL_v3(whFilt, alpha);
+phRecoveredSyms_v4 = qpskSecondOrderPLL(whFilt, 0.0082, 3.3554e-05 );
 
 if(debugFilename~=0)
     fname = '/tmp/ml_preCrossCorr.txt';

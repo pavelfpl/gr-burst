@@ -30,6 +30,8 @@
 #include <gsl/gsl_linalg.h>
 #include <gnuradio/filter/fft_filter.h>
 #include <mapper/constellation.h>
+// FIR filter ...
+#include <gnuradio/filter/fir_filter.h>
 
 namespace gr {
   namespace burst {
@@ -38,20 +40,31 @@ namespace gr {
     {
      private:
       float qpskBurstCFOCorrect(gr_complex* x, int burstSize);
-      void shiftFreq(gr_complex* buf, int bufLen, double Fs, double freq, double tStart);
+      inline void shiftFreq(gr_complex* buf, int bufLen, double Fs, double freq, double tStart);
       void determineOptimalFilter(gsl_vector_complex* w, gr_complex* x, int xLen);
       void qpskFirstOrderPLL(gr_complex* x, int size, float alpha, gr_complex* y);
       void toeplitz(gr_complex* col, int M, gr_complex* row, int N, gsl_matrix_complex* T);
-      void conv(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
       void handler(pmt::pmt_t msg);
 
       void enableDebugMode();
-
+      // New functions & variables ...
+      // -----------------------------
+      inline void clearResources();
+      void set_taps(std::vector<float> taps);
+      void conv_prealloc(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
+      void conv_eq_prealloc(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
+      void qpskSecondOrderPLL(gr_complex* x, int size, float alpha, float beta, gr_complex* y);
+      void conv(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
+     protected:  
+      boost::mutex fp_mutex;
      public:
-      synchronizer_v4_impl(double Fs, int sps, std::vector<unsigned char> preamble_bits, std::vector<int> sym_mapping);
+      synchronizer_v4_impl(double Fs, int sps, std::vector<unsigned char> preamble_bits, std::vector<int> sym_mapping, int decim, int decimation, int burst_size, int pll_type, bool port_debug, const std::vector<float> taps_);
       ~synchronizer_v4_impl();
+      
+      bool stop();
 
-      // Where all the action really happens
+      // Where all the action really happens ...
+      // ---------------------------------------
       int work(int noutput_items,
 	       gr_vector_const_void_star &input_items,
 	       gr_vector_void_star &output_items);
@@ -63,7 +76,7 @@ namespace gr {
       fft::fft_complex preFFTEngine;
 
       std::vector<gr_complex> preSyms_fliplr_conj;			// preamble bits size / 2
-      std::vector<gr_complex> preSyms_xR_fliplr_conj;		// ( preamble bits size / 2 )* sps
+      std::vector<gr_complex> preSyms_xR_fliplr_conj;		// (preamble bits size / 2)* sps
 
       int optimalFilterSize;
       std::vector<gr_complex> wOpt_gr;
@@ -75,6 +88,28 @@ namespace gr {
       mapper::constellation d_const;
 
       bool debugMode;
+      
+      bool m_decim; 
+      int m_decimation;
+      bool m_port_debug;
+      int m_burst_size;
+      int m_burst_size_conv;
+      int m_pll_type;
+      
+      size_t d_pad;
+      size_t d_group_delay_offset;
+      bool d_even_num_taps;
+      filter::kernel::fir_filter_ccf d_fir_ccf;
+      
+      fft::fft_complex *fftEngine;
+      fft::fft_complex *fftEngine1;
+      fft::fft_complex *fftEngine2;
+      fft::fft_complex *ifftEngineA;
+    
+      fft::fft_complex *fftEngine11;
+      fft::fft_complex *fftEngine22;
+      fft::fft_complex *ifftEngineAA;
+      
 
     };
 

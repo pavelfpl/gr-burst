@@ -1,14 +1,23 @@
 function [ y ] = qpskBurstCFOCorrect( x, Fs, debugMode )
 
 x4 = x.^4;      % take qpsk ^ 4th to extract baudrate lines
+
+
 % % % X = fftshift(abs(fft(x)));
+X3 = (abs(fft(x4)).^2);
 X4 = fftshift(abs(fft(x4)).^2);     % i square it here b/c it is just a scaling factor, 
                                     % and in C++ its faster to just take real^2+imag^2 
                                     % and not take the square-root
+plot(X4)                                    
+                                    
 f = linspace(-Fs/2,Fs/2,length(x4));
 
 [maxVal, maxIdx] = max(X4);
 cfoEstimate = f(maxIdx)/4;
+
+cfoEstimate
+maxIdx
+
 
 %%%%% THIS IS ONE WAY TO DO THE CFO CORRECTIOn
 to = (0:length(x)-1)/Fs;
