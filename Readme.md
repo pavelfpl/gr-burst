@@ -24,3 +24,9 @@ install python-bitarray and build/install gr-mapper
 
 https://arxiv.org/pdf/1604.08397.pdf  
 https://kirankarra.wordpress.com/machine-learning/qpsk-burst-receiver-synchronization/
+
+### gr-burst maint-3.8
+
+https://github.com/flynn378/gr-burst
+
+

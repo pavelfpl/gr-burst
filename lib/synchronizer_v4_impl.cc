@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 /* 
- * Copyright 2015 Free Software Foundation, Inc
+ * Copyright 2015/2021 Free Software Foundation, Inc
  * 
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +59,8 @@ namespace gr {
     }
 
     /*
-     * The private constructor
+     * The private constructor ...
+     * ---------------------------
      */
     synchronizer_v4_impl::synchronizer_v4_impl(double Fs, int sps, std::vector<unsigned char> preamble_bits, std::vector<int> sym_mapping, int decim, int decimation, int burst_size, int pll_type, bool port_debug, const std::vector<float> taps_)
       : gr::sync_block("synchronizer_v4",
@@ -204,7 +205,6 @@ namespace gr {
        if(ifftEngineAA!=0){ delete ifftEngineAA; ifftEngineAA = 0;}
     }
     
-    
     // set_taps - private function ...
     // -------------------------------
     void synchronizer_v4_impl::enableDebugMode() {
@@ -235,7 +235,7 @@ namespace gr {
     // ------------------------------------------
     float synchronizer_v4_impl::qpskBurstCFOCorrect(gr_complex* x_in, int burstSize) {
 		
-        // TODO: maybe we can have a fixed burst size, only calculate cfo over a certain burst size
+        // TODO/done: maybe we can have a fixed burst size, only calculate cfo over a certain burst size
 		// then we can statically create the fft engine in the constructor, will probably be a lot faster
 		
         /*
@@ -244,7 +244,7 @@ namespace gr {
 		}
 		*/
 		
-		// Using global fftEngine object create in constructor - see TODO... 
+		// Using global fftEngine object create in constructor - see TODO/done ... 
 		gr_complex* fftInBuf = fftEngine->get_inbuf();
 		gr_complex* fftOutBuf = fftEngine->get_outbuf();
 		std::vector<float> fftOutAbs(burstSize, 0.0);
@@ -433,43 +433,45 @@ namespace gr {
     	gr_complex* fftOutBuf = preFFTEngine.get_outbuf();
 
     	if(debugMode) {
-			std::string filename = "/tmp/gr_dofFFTOutput.txt";
-			std::vector<gr_complex> b(preFFTEngineFFTSize);
-			b.assign(fftOutBuf, fftOutBuf+preFFTEngineFFTSize);
-			qa_helpers::writeComplexFile(filename, b);
+           std::string filename = "/tmp/gr_dofFFTOutput.txt";
+           std::vector<gr_complex> b(preFFTEngineFFTSize);
+           b.assign(fftOutBuf, fftOutBuf+preFFTEngineFFTSize);
+           qa_helpers::writeComplexFile(filename, b);
 		}
 
     	// Take the output, and store the absolute value in an array ...
     	gr_complex* ifftInBuf = preFFTEngine.get_inbuf();
+        
     	for(int ii=0; ii<preFFTEngineFFTSize; ii++) {
-                ifftInBuf[ii].real(pow( std::abs(fftOutBuf[ii]), 2));
-                ifftInBuf[ii].imag(0);
+            ifftInBuf[ii].real(pow(std::abs(fftOutBuf[ii]), 2));
+            ifftInBuf[ii].imag(0);
     	}
 
     	if(debugMode) {
-			std::string filename = "/tmp/gr_dofIFFTInput.txt";
-			std::vector<float> b(preFFTEngineFFTSize);
-			for(int ii=0; ii<preFFTEngineFFTSize; ii++) {
+           std::string filename = "/tmp/gr_dofIFFTInput.txt";
+           std::vector<float> b(preFFTEngineFFTSize);
+           for(int ii=0; ii<preFFTEngineFFTSize; ii++) {
 				b[ii] = ifftInBuf[ii].real();
-			}
-			qa_helpers::writeFloatFile(filename, b);
+           }
+           qa_helpers::writeFloatFile(filename, b);
 		}
 
     	preFFTEngine.execute();
     	gr_complex* ifftOutBuf = preFFTEngine.get_outbuf();
 
     	if(debugMode) {
-			std::string filename = "/tmp/gr_dofIFFTOutput.txt";
-			std::vector<gr_complex> b(preFFTEngineFFTSize);
-			b.assign(ifftOutBuf, ifftOutBuf+preFFTEngineFFTSize);
-			qa_helpers::writeComplexFile(filename, b);
+           std::string filename = "/tmp/gr_dofIFFTOutput.txt";
+           std::vector<gr_complex> b(preFFTEngineFFTSize);
+           b.assign(ifftOutBuf, ifftOutBuf+preFFTEngineFFTSize);
+           qa_helpers::writeComplexFile(filename, b);
 		}
 
     	// Generate the row and col vectors for toeplitz matrix creation and scale as necessary ...
     	// ----------------------------------------------------------------------------------------
 		std::vector<gr_complex> row(preSymsSize);
 		std::vector<gr_complex> col(preSymsSize);
-    	for(int ii=0; ii<preSymsSize; ii++) {
+    	
+        for(int ii=0; ii<preSymsSize; ii++) {
     		// Downscale by m and the ifft size ...
     		col[ii] = std::conj(ifftOutBuf[ii])*1.0f/(((float)(optimalFilterSize))*((float)(preFFTEngineFFTSize)));
     		row[ii] = ifftOutBuf[ii]*1.0f/(((float)(optimalFilterSize))*((float)(preFFTEngineFFTSize)));
@@ -485,8 +487,7 @@ namespace gr {
     	gsl_matrix_complex* R = gsl_matrix_complex_alloc(preSymsSize, preSymsSize);
     	toeplitz(&col[0], preSymsSize, &row[0], preSymsSize, R);
 
-    	std::vector<gr_complex> xc(preSymsSize+preSymsSize-1); // -1
-    	//std::vector<gr_complex> xc1(preSymsSize+preSymsSize-1); // -1
+    	std::vector<gr_complex> xc(preSymsSize+preSymsSize-1);     // -1
         
         // compute correlation between preSyms and x[1:48]
         // -----------------------------------------------
@@ -494,7 +495,7 @@ namespace gr {
     	// the difference in the cross-correlations between the zero-pad and the non-zeropad are small,
         // not sure if we can get away w/ doing no zeropad?? investigate w/ perofrmacne
         
-        //conv(&x[0], preSymsSize, &preSyms_fliplr_conj[0], preSymsSize, xc);
+        // conv(&x[0], preSymsSize, &preSyms_fliplr_conj[0], preSymsSize, xc);
         conv_eq_prealloc(&x[0], preSymsSize, &preSyms_fliplr_conj[0], preSymsSize, xc);
         
     	if(debugMode) {
@@ -515,14 +516,16 @@ namespace gr {
     	// Make P vector
         gsl_vector_complex* P = gsl_vector_complex_alloc(optimalFilterSize);
     	gsl_complex cval;
-    	int jj = xc.size()-1;
-    	for(int ii=0; ii<optimalFilterSize; ii++) {
+    	
+        int jj = xc.size()-1;
+    	
+        for(int ii=0; ii<optimalFilterSize; ii++) {
     		GSL_SET_COMPLEX(&cval, xc[jj].real(), -xc[jj].imag());
     		gsl_vector_complex_set(P, ii, cval);
     		jj--;
     	}
 
-    	// Solve for R
+    	// Solve for R ...
     	int s;
     	gsl_permutation * p = gsl_permutation_alloc(optimalFilterSize);
     
@@ -542,7 +545,7 @@ namespace gr {
 
     	// Rescale w happens when we copy w back to a gr vector ...
 
-    	// Free gsl memory
+    	// Free gsl memory ...
     	gsl_matrix_complex_free(R);
 		gsl_vector_complex_free(P);
 		gsl_permutation_free(p);
@@ -715,7 +718,8 @@ namespace gr {
 		
         // 4] search for start index/timing ...
 		// ------------------------------------
-        std::vector<gr_complex> preCrossCorr_cmplx(preSymsRateMatchedSize+eqBurst.size()/2-1);
+		// division with two - searching only in the first half burst samples now ... 
+        std::vector<gr_complex> preCrossCorr_cmplx(preSymsRateMatchedSize+eqBurst.size()/2-1); 
     
         // correlation - using 2xFFT/1xIFFT
 		conv_prealloc(&eqBurst[0], eqBurst.size()/2, &preSyms_xR_fliplr_conj[0], preSymsRateMatchedSize, preCrossCorr_cmplx);

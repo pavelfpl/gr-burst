@@ -50,8 +50,8 @@ GR_PYTHON_INSTALL(
     packer.py
     length_detect.py
     cpdu_matlab_writer.py
-    #synchronizer.py
-    #synchronizer_v2.py
+    # synchronizer.py
+    # synchronizer_v2.py
     synchronizer_v3.py
     DESTINATION ${GR_PYTHON_DIR}/burst
 )
@@ -63,5 +63,5 @@ include(GrTest)
 
 set(GR_TEST_TARGET_DEPS gnuradio-burst)
 set(GR_TEST_PYTHON_DIRS ${CMAKE_BINARY_DIR}/swig)
-#GR_ADD_TEST(qa_gr_messages ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_synchronizer_v2.py)
+# GR_ADD_TEST(qa_gr_messages ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_synchronizer_v2.py)
 GR_ADD_TEST(qa_gr_messages ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_synchronizer_v3.py)

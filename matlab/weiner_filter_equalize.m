@@ -5,7 +5,7 @@ function [ w ] = weiner_filter_equalize( eqInput, debugFilename )
 
 [~, d_n] = genPreamble();
 
-% % numEqTaps = length(d_n);
+% numEqTaps = length(d_n);
 
 x_n = eqInput(1:length(d_n));
 x_n = x_n(:);
@@ -14,7 +14,7 @@ x_n = x_n(:);
 X = fft(x_n, 2^nextpow2(2*size(x_n,1)-1));
 X_magSq = abs(X).^2;
 
-rxx_ifft = ifft(X_magSq);% rxx_ifft
+rxx_ifft = ifft(X_magSq); % rxx_ifft
 m = length(x_n);
 rxx = rxx_ifft./m; % Biased autocorrelation estimate
 
@@ -31,7 +31,6 @@ P = P_row(:);
 
 % solve the optimal weights problem
 w = R\P;
-
 % w
 
 if(debugFilename~=0)
