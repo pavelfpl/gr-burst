@@ -58,8 +58,8 @@ sudo ldconfig
 https://arxiv.org/pdf/1604.08397.pdf  
 https://kirankarra.wordpress.com/machine-learning/qpsk-burst-receiver-synchronization/
 
-### gr-burst maint-3.8
+### gr-burst and gr-mapper maint-3.8
 
-https://github.com/flynn378/gr-burst
-
+https://github.com/flynn378/gr-burst  
+https://github.com/myersw12/gr-mapper  
 
