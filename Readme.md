@@ -11,6 +11,7 @@ install python-bitarray and build/install gr-mapper
 https://github.com/osh/gr-eventstream  
 https://github.com/gr-vt/gr-mapper  
 https://github.com/osh/gr-pyqt
+https://github.com/sandialabs/gr-pdu_utils (optional)
 
 ## Building
 >This module requires **Gnuradio 3.7.x**.
