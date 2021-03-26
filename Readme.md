@@ -9,7 +9,7 @@ install python-bitarray and build/install gr-mapper
 ## Dependencies
 
 https://github.com/osh/gr-eventstream  
-https://github.com/gr-vt/gr-mapper
+https://github.com/gr-vt/gr-mapper  
 https://github.com/osh/gr-pyqt
 
 ## Building
