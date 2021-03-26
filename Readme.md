@@ -6,6 +6,39 @@ install python-bitarray and build/install gr-mapper
 
 ----------------------------------------------------
 
+## Dependencies
+
+https://github.com/osh/gr-eventstream  
+https://github.com/gr-vt/gr-mapper
+https://github.com/osh/gr-pyqt
+
+## Building
+>This module requires **Gnuradio 3.7.x**.
+>Build is pretty standard:
+```
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+sudo ldconfig
+```
+## Building local
+
+>**Gnuradio 3.7.x** is installed to `$HOME/gr3.7`:
+
+```
+cd gr3.7
+source gr3.7-source.env
+cd ..
+cd gr-gsSDR
+mkdir build 
+cd build
+cmake ../ -Wno-dev -DCMAKE_INSTALL_PREFIX=~/gr3.7.13.4 
+make install
+sudo ldconfig
+```
+
 ## gr-burst extension
 
 >  **QPSK burst synchronization block** has been extended and improved:
