@@ -32,7 +32,7 @@ sudo ldconfig
 cd gr3.7
 source gr3.7-source.env
 cd ..
-cd gr-gsSDR
+cd gr-PacketDeCoderSDR
 mkdir build 
 cd build
 cmake ../ -Wno-dev -DCMAKE_INSTALL_PREFIX=~/gr3.7.13.4 
