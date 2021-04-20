@@ -53,6 +53,7 @@ sudo ldconfig
 -  **pmt port debug** - enabled / disabled  
 
 ![Block structure](https://github.com/pavelfpl/gr-burst/blob/master/qpsk_burst_sync.png)
+!QPSK RX charts](https://github.com/pavelfpl/gr-burst/blob/master/burst_flow_chart_qpsk.png)
 
 ## Links
 
