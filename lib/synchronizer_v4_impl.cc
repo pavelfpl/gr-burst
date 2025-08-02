@@ -51,6 +51,34 @@ using namespace std::chrono;
 namespace gr {
   namespace burst {
 
+// On ARM may produce  volk_32fc_magnitude_32f_* optimized function NAN ...     
+// Optimization for ARM may help to increase performace ...
+#ifdef __ARM_NEON
+    static inline void volk_32fc_magnitude_32f_generic_static(float* magnitudeVector,
+                                                   const lv_32fc_t* complexVector,
+                                                   unsigned int num_points);  
+
+    static inline void volk_32fc_magnitude_32f_generic_static(float* magnitudeVector,
+                                                   const lv_32fc_t* complexVector,
+                                                   unsigned int num_points){
+        
+            const float* complexVectorPtr = (float*)complexVector;
+            float* magnitudeVectorPtr = magnitudeVector;
+            unsigned int number = 0;
+            
+            for (number = 0; number < num_points; number++) {
+                 const float real = *complexVectorPtr++;
+                 const float imag = *complexVectorPtr++;
+                 
+                 if(real == 0.0 and imag == 0.0){
+                    *magnitudeVectorPtr++ = 0.0;
+                 }else{
+                    *magnitudeVectorPtr++ = sqrtf((real * real) + (imag * imag));
+                 }
+            }
+     }
+#endif /* __ARM_NEON */
+    
     synchronizer_v4::sptr
     synchronizer_v4::make(double Fs, int sps, std::vector<unsigned char> preamble_bits, std::vector<int> sym_mapping, int decim, int decimation, int burst_size, int pll_type, bool port_debug, const std::vector<float> taps_)
     {
@@ -175,7 +203,8 @@ namespace gr {
        clearResources();
         
     }
-
+    
+    
     // stop - public function ...
     // --------------------------
     bool synchronizer_v4_impl::stop(){
@@ -813,7 +842,13 @@ namespace gr {
 		// 7] Normalize ...
 		// ----------------
 		std::vector<float> whFiltAbs(whFilt.size());
-	    volk_32fc_magnitude_32f(&whFiltAbs[0], &whFilt[0], whFilt.size());
+
+#ifdef __ARM_NEON
+        volk_32fc_magnitude_32f_generic_static(&whFiltAbs[0], &whFilt[0], whFilt.size())
+#else
+        volk_32fc_magnitude_32f(&whFiltAbs[0], &whFilt[0], whFilt.size());
+#endif        
+	    
 	    float normFactor = 0;
 	    volk_32f_accumulator_s32f(&normFactor, &whFiltAbs[0], whFilt.size());
 	    normFactor /= whFilt.size();
