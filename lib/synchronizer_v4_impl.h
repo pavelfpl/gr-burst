@@ -30,35 +30,78 @@
 #include <gsl/gsl_linalg.h>
 #include <gnuradio/filter/fft_filter.h>
 #include <mapper/constellation.h>
-// FIR filter ...
 #include <gnuradio/filter/fir_filter.h>
+#include <chrono> 
 
 namespace gr {
   namespace burst {
+      
+    using namespace std::chrono;   
 
-    class synchronizer_v4_impl : public synchronizer_v4
-    {
+    class synchronizer_v4_impl : public synchronizer_v4{
      private:
-      float qpskBurstCFOCorrect(gr_complex* x, int burstSize);
-      inline void shiftFreq(gr_complex* buf, int bufLen, double Fs, double freq, double tStart);
-      void determineOptimalFilter(gsl_vector_complex* w, gr_complex* x, int xLen);
-      void qpskFirstOrderPLL(gr_complex* x, int size, float alpha, gr_complex* y);
-      void toeplitz(gr_complex* col, int M, gr_complex* row, int N, gsl_matrix_complex* T);
-      void handler(pmt::pmt_t msg);
+       // Private function
+       inline void clearResources();
+       void enableDebugMode();
+       void set_taps(const std::vector<float> taps);   
+       inline void shiftFreq(gr_complex* buf, const int bufLen, const double Fs, const double freq, const double tStart);  
+       void qpskBurstCFOCorrect(gr_complex* x_in, const int burstSize, const bool doEstimation);
+       void conv_prealloc(const gr_complex* const a, const int aLen, const gr_complex* const b, const int bLen, std::vector<gr_complex> &result);
+       void conv_eq_prealloc(const gr_complex* const a, const int aLen, const gr_complex* const b, const int bLen, std::vector<gr_complex> &result);
+       void determineOptimalFilter(gsl_vector_complex* w, const gr_complex* const x, const int xLen);
+       void toeplitz(const gr_complex* const col,const int M, const gr_complex* const row, const int N, gsl_matrix_complex* T);
+       void qpskFirstOrderPLL(const gr_complex* const x, int size, float alpha, gr_complex* y);
+       void qpskSecondOrderPLL(const gr_complex* const x, int size, float alpha, float beta, gr_complex* y);
+       void handler(pmt::pmt_t msg);
 
-      void enableDebugMode();
-      // New functions & variables ...
-      // -----------------------------
-      inline void clearResources();
-      void set_taps(std::vector<float> taps);
-      void conv_prealloc(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
-      void conv_eq_prealloc(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
-      void qpskSecondOrderPLL(gr_complex* x, int size, float alpha, float beta, gr_complex* y);
-      void conv(gr_complex* a, int aLen, const gr_complex* b, int bLen, std::vector<gr_complex> &result);
+       int32_t m_coarse_timeout;
+       time_point<high_resolution_clock> m_start_prev;
+       double m_cfoEstimate;
+      
+       size_t d_pad;
+       size_t d_group_delay_offset;
+       bool d_even_num_taps;
+       filter::kernel::fir_filter_ccf d_fir_ccf;
+      
+       fft::fft_complex *fftEngine;
+       fft::fft_complex *fftEngine1;
+       fft::fft_complex *fftEngine2;
+       fft::fft_complex *ifftEngineA;
+    
+       fft::fft_complex *fftEngine11;
+       fft::fft_complex *fftEngine22;
+       fft::fft_complex *ifftEngineAA;
+       
+       float d_Fs;
+       int d_sps;
+
+       int preFFTEngineFFTSize;
+       fft::fft_complex preFFTEngine;
+
+       std::vector<gr_complex> preSyms_fliplr_conj;		
+       std::vector<gr_complex> preSyms_xR_fliplr_conj;
+
+       int optimalFilterSize;
+       std::vector<gr_complex> wOpt_gr;
+       gsl_vector_complex* wOpt;
+
+       int preSymsSize;
+       int preSymsRateMatchedSize;
+
+       mapper::constellation d_const;
+
+       bool debugMode;
+       bool m_port_debug;
+       bool m_decim; 
+      
+       int m_decimation;
+       int m_burst_size;
+       int m_burst_size_conv;
+       int m_pll_type;
      protected:  
       boost::mutex fp_mutex;
      public:
-      synchronizer_v4_impl(double Fs, int sps, std::vector<unsigned char> preamble_bits, std::vector<int> sym_mapping, int decim, int decimation, int burst_size, int pll_type, bool port_debug, const std::vector<float> taps_);
+      synchronizer_v4_impl(double Fs, int sps, std::vector<unsigned char> preamble_bits, std::vector<int> sym_mapping, bool decim, int decimation, int burst_size, int pll_type, bool port_debug, const std::vector<float> taps_,const int coarse_timeout);
       ~synchronizer_v4_impl();
       
       bool stop();
@@ -68,48 +111,6 @@ namespace gr {
       int work(int noutput_items,
 	       gr_vector_const_void_star &input_items,
 	       gr_vector_void_star &output_items);
-
-      float d_Fs;
-      int d_sps;
-
-      int preFFTEngineFFTSize;
-      fft::fft_complex preFFTEngine;
-
-      std::vector<gr_complex> preSyms_fliplr_conj;			// preamble bits size / 2
-      std::vector<gr_complex> preSyms_xR_fliplr_conj;		// (preamble bits size / 2)* sps
-
-      int optimalFilterSize;
-      std::vector<gr_complex> wOpt_gr;
-      gsl_vector_complex* wOpt;
-
-      int preSymsSize;
-      int preSymsRateMatchedSize;
-
-      mapper::constellation d_const;
-
-      bool debugMode;
-      
-      bool m_decim; 
-      int m_decimation;
-      bool m_port_debug;
-      int m_burst_size;
-      int m_burst_size_conv;
-      int m_pll_type;
-      
-      size_t d_pad;
-      size_t d_group_delay_offset;
-      bool d_even_num_taps;
-      filter::kernel::fir_filter_ccf d_fir_ccf;
-      
-      fft::fft_complex *fftEngine;
-      fft::fft_complex *fftEngine1;
-      fft::fft_complex *fftEngine2;
-      fft::fft_complex *ifftEngineA;
-    
-      fft::fft_complex *fftEngine11;
-      fft::fft_complex *fftEngine22;
-      fft::fft_complex *ifftEngineAA;
-      
 
     };
 
