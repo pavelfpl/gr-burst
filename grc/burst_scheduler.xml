@@ -4,8 +4,19 @@
   <key>burst_scheduler</key>
   <category>burst</category>
   <import>import burst</import>
-  <make>burst.burst_scheduler()</make>
-
+  <make>burst.burst_scheduler($barrier, $slot)</make>
+  <param>
+    <name>Packet barrier</name>
+    <key>barrier</key>
+    <value>10000</value>
+    <type>int</type>
+  </param>
+  <param>
+    <name>Slot</name>
+    <key>slot</key>
+    <value>1000</value>
+    <type>int</type>
+  </param>  
   <sink>
     <name>sched_pdu</name>
     <type>message</type>
